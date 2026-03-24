@@ -1,7 +1,8 @@
 "use client";
 
-import { useEffect, useMemo, useRef } from "react";
-import { ExternalLink, Eye, X } from "lucide-react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import Image from "next/image";
+import { ExternalLink, Eye, Play, X } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { ReelEmbed } from "@/components/reel-embed";
@@ -25,7 +26,13 @@ interface ReelViewerProps {
   onClose: () => void;
 }
 
-function ViewerItem({ reel }: { reel: Reel }) {
+interface ViewerItemProps {
+  reel: Reel;
+  active: boolean;
+  onActive: (id: string) => void;
+}
+
+function ViewerItem({ reel, active, onActive }: ViewerItemProps) {
   const viewedRef = useRef(false);
   const itemRef = useRef<HTMLDivElement | null>(null);
 
@@ -36,19 +43,23 @@ function ViewerItem({ reel }: { reel: Reel }) {
     const observer = new IntersectionObserver(
       (entries) => {
         const entry = entries[0];
-        if (!entry?.isIntersecting || viewedRef.current) return;
-        viewedRef.current = true;
-        fetch(`/api/reels/${reel.id}`).catch(() => {});
+        if (!entry) return;
+        if (entry.isIntersecting && entry.intersectionRatio >= 0.7) {
+          onActive(reel.id);
+          if (!viewedRef.current) {
+            viewedRef.current = true;
+            fetch(`/api/reels/${reel.id}`).catch(() => {});
+          }
+        }
       },
-      { threshold: 0.65 }
+      { threshold: [0.35, 0.7, 0.9] }
     );
 
     observer.observe(node);
     return () => observer.disconnect();
-  }, [reel.id]);
+  }, [onActive, reel.id]);
 
   const contentLabel = useMemo(() => {
-    if (reel.contentType === "POST") return "Facebook Post";
     if (reel.contentType === "VIDEO") return "Facebook Video";
     return "Facebook Reel";
   }, [reel.contentType]);
@@ -58,9 +69,32 @@ function ViewerItem({ reel }: { reel: Reel }) {
       <div className="mx-auto flex min-h-screen w-full max-w-7xl flex-col items-center justify-center gap-4 px-4 py-6 lg:flex-row lg:items-center lg:justify-center lg:gap-8">
         <div className="relative w-full max-w-[390px] overflow-hidden rounded-[2rem] border border-white/10 bg-black shadow-2xl">
           <div className="relative aspect-[9/16] w-full overflow-hidden">
-            <div className="absolute inset-0">
-              <ReelEmbed reel={reel} />
-            </div>
+            {active ? (
+              <div className="absolute inset-0">
+                <ReelEmbed reel={reel} autoplay />
+              </div>
+            ) : reel.thumbnail ? (
+              <>
+                <Image
+                  src={reel.thumbnail}
+                  alt={reel.title}
+                  fill
+                  className="object-cover opacity-90"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-black/10 to-transparent" />
+                <div className="absolute inset-0 flex items-center justify-center">
+                  <div className="flex h-16 w-16 items-center justify-center rounded-full bg-white/20 backdrop-blur ring-2 ring-white/30">
+                    <Play className="ml-1 h-7 w-7 fill-white text-white" />
+                  </div>
+                </div>
+              </>
+            ) : (
+              <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-slate-900 via-slate-800 to-slate-950">
+                <div className="flex h-16 w-16 items-center justify-center rounded-full bg-white/20 backdrop-blur ring-2 ring-white/30">
+                  <Play className="ml-1 h-7 w-7 fill-white text-white" />
+                </div>
+              </div>
+            )}
           </div>
         </div>
 
@@ -101,6 +135,12 @@ function ViewerItem({ reel }: { reel: Reel }) {
 }
 
 export function ReelViewer({ reels, open, onClose }: ReelViewerProps) {
+  const [activeId, setActiveId] = useState<string | null>(reels[0]?.id ?? null);
+
+  useEffect(() => {
+    setActiveId(reels[0]?.id ?? null);
+  }, [reels]);
+
   useEffect(() => {
     if (!open) return;
     const previous = document.body.style.overflow;
@@ -124,7 +164,12 @@ export function ReelViewer({ reels, open, onClose }: ReelViewerProps) {
 
       <div className="h-screen snap-y snap-mandatory overflow-y-auto overscroll-y-contain">
         {reels.map((reel) => (
-          <ViewerItem key={reel.id} reel={reel} />
+          <ViewerItem
+            key={reel.id}
+            reel={reel}
+            active={activeId === reel.id}
+            onActive={setActiveId}
+          />
         ))}
       </div>
     </div>

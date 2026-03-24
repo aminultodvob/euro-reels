@@ -12,7 +12,13 @@ interface Reel {
   contentType: "REEL" | "POST" | "VIDEO";
 }
 
-export function ReelEmbed({ reel }: { reel: Reel }) {
+function withAutoplay(url: string, autoplay?: boolean): string {
+  if (!autoplay) return url;
+  const separator = url.includes("?") ? "&" : "?";
+  return `${url}${separator}autoplay=1`;
+}
+
+export function ReelEmbed({ reel, autoplay = false }: { reel: Reel; autoplay?: boolean }) {
   const [iframeError, setIframeError] = useState(false);
   const [key, setKey] = useState(0);
 
@@ -52,7 +58,7 @@ export function ReelEmbed({ reel }: { reel: Reel }) {
   return (
     <iframe
       key={key}
-      src={reel.embedUrl}
+      src={withAutoplay(reel.embedUrl, autoplay)}
       title={reel.title}
       allow="autoplay; clipboard-write; encrypted-media; picture-in-picture; web-share"
       allowFullScreen
