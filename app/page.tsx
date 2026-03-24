@@ -1,100 +1,154 @@
-import Image from "next/image";
+"use client";
 
-export default function Home() {
+import { useState, useEffect, useCallback } from "react";
+import { Navbar } from "@/components/navbar";
+import { ReelGrid } from "@/components/reel-grid";
+import { CategoryFilter } from "@/components/category-filter";
+import { AlphabetFilter } from "@/components/alphabet-filter";
+import { Pagination } from "@/components/pagination";
+
+interface Reel {
+  id: string;
+  title: string;
+  url: string;
+  embedUrl: string;
+  category: string;
+  contentType: "REEL" | "POST" | "VIDEO";
+  thumbnail?: string | null;
+  viewCount: number;
+  createdAt: string;
+}
+
+interface ApiResponse {
+  reels: Reel[];
+  pagination: {
+    page: number;
+    limit: number;
+    total: number;
+    totalPages: number;
+  };
+}
+
+interface CategoryResponse {
+  categories: Array<{ name: string }>;
+}
+
+const LIMIT = 12;
+
+export default function HomePage() {
+  const [reels, setReels] = useState<Reel[]>([]);
+  const [allCategories, setAllCategories] = useState<string[]>(["All"]);
+  const [activeCategory, setActiveCategory] = useState("All");
+  const [activeLetter, setActiveLetter] = useState("All");
+  const [search, setSearch] = useState("");
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [loading, setLoading] = useState(true);
+
+  const fetchReels = useCallback(async () => {
+    setLoading(true);
+    try {
+      const params = new URLSearchParams({
+        page: String(page),
+        limit: String(LIMIT),
+      });
+      if (activeCategory !== "All") params.set("category", activeCategory);
+      if (activeLetter !== "All") params.set("letter", activeLetter);
+      if (search) params.set("search", search);
+
+      const res = await fetch(`/api/reels?${params}`);
+      const data: ApiResponse = await res.json();
+      setReels(data.reels);
+      setTotalPages(data.pagination.totalPages);
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setLoading(false);
+    }
+  }, [page, activeCategory, activeLetter, search]);
+
+  useEffect(() => {
+    fetch("/api/categories")
+      .then((r) => r.json())
+      .then((data: CategoryResponse) => {
+        setAllCategories(["All", ...(data.categories ?? []).map((item) => item.name)]);
+      })
+      .catch(async () => {
+        try {
+          const res = await fetch("/api/reels?limit=200");
+          const data: ApiResponse = await res.json();
+          const names = Array.from(new Set(data.reels.map((item) => item.category))).sort((a, b) =>
+            a.localeCompare(b)
+          );
+          setAllCategories(["All", ...names]);
+        } catch (error) {
+          console.error(error);
+        }
+      });
+  }, []);
+
+  useEffect(() => {
+    fetchReels();
+  }, [fetchReels]);
+
+  const handleCategoryChange = (cat: string) => {
+    setActiveCategory(cat);
+    setPage(1);
+  };
+
+  const handleSearch = (q: string) => {
+    setSearch(q);
+    setPage(1);
+  };
+
+  const handleLetterChange = (letter: string) => {
+    setActiveLetter(letter);
+    setPage(1);
+  };
+
   return (
-    <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
-      <main className="flex flex-col gap-8 row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="https://nextjs.org/icons/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="list-inside list-decimal text-sm text-center sm:text-left font-[family-name:var(--font-geist-mono)]">
-          <li className="mb-2">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] px-1 py-0.5 rounded font-semibold">
-              app/page.tsx
-            </code>
-            .
-          </li>
-          <li>Save and see your changes instantly.</li>
-        </ol>
+    <div className="min-h-screen bg-background">
+      <Navbar onSearch={handleSearch} />
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="https://nextjs.org/icons/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:min-w-44"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
+      <section className="border-b border-border/40 bg-gradient-to-b from-primary/5 to-background py-12 text-center">
+        <h1 className="mb-3 bg-gradient-to-r from-primary via-blue-400 to-purple-500 bg-clip-text text-4xl font-extrabold tracking-tight text-transparent sm:text-5xl">
+          Euro & Lika Facebook Reels, Posts & Videos
+        </h1>
+        <p className="mx-auto max-w-xl text-muted-foreground">
+          Facebook content by category, including reels, posts, and videos, all in one
+          place.
+        </p>
+      </section>
+
+      <main className="container mx-auto max-w-7xl px-4 py-8 sm:px-6">
+        <div className="mb-6">
+          <CategoryFilter
+            categories={allCategories}
+            active={activeCategory}
+            onChange={handleCategoryChange}
+          />
         </div>
+
+        <div className="mb-6">
+          <AlphabetFilter active={activeLetter} onChange={handleLetterChange} />
+        </div>
+
+        <div className="mb-6 flex flex-wrap items-center justify-between gap-4">
+          <p className="text-sm text-muted-foreground">
+            {loading ? "Loading..." : `Showing ${reels.length} items`}
+          </p>
+          <p className="text-sm text-muted-foreground">
+            Sorted alphabetically{activeLetter !== "All" ? ` · ${activeLetter}` : ""}
+          </p>
+        </div>
+
+        <ReelGrid reels={reels} loading={loading} />
+
+        <Pagination page={page} totalPages={totalPages} onPageChange={setPage} />
       </main>
-      <footer className="row-start-3 flex gap-6 flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="https://nextjs.org/icons/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="https://nextjs.org/icons/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="https://nextjs.org/icons/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
+
+      <footer className="border-t border-border/40 py-8 text-center text-sm text-muted-foreground">
+        <p>&copy; {new Date().getFullYear()} EuroReel. All rights reserved.</p>
       </footer>
     </div>
   );
