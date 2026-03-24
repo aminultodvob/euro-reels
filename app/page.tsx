@@ -57,34 +57,41 @@ export default function HomePage() {
       if (search) params.set("search", search);
 
       const res = await fetch(`/api/reels?${params}`);
+      if (!res.ok) throw new Error("Failed to fetch reels");
       const data: ApiResponse = await res.json();
-      setReels(data.reels);
-      setTotalPages(data.pagination.totalPages);
+      setReels(data.reels || []);
+      setTotalPages(data.pagination?.totalPages || 1);
     } catch (err) {
       console.error(err);
+      setReels([]);
     } finally {
       setLoading(false);
     }
   }, [page, activeCategory, activeLetter, search]);
 
   useEffect(() => {
-    fetch("/api/categories")
-      .then((r) => r.json())
-      .then((data: CategoryResponse) => {
+    const loadCategories = async () => {
+      try {
+        const res = await fetch("/api/categories");
+        if (!res.ok) throw new Error();
+        const data: CategoryResponse = await res.json();
         setAllCategories(["All", ...(data.categories ?? []).map((item) => item.name)]);
-      })
-      .catch(async () => {
+      } catch {
+        // Fallback: try to get categories from all reels if categories API fails
         try {
           const res = await fetch("/api/reels?limit=200");
+          if (!res.ok) return;
           const data: ApiResponse = await res.json();
-          const names = Array.from(new Set(data.reels.map((item) => item.category))).sort((a, b) =>
+          const names = Array.from(new Set((data.reels || []).map((item) => item.category))).sort((a, b) =>
             a.localeCompare(b)
           );
           setAllCategories(["All", ...names]);
         } catch (error) {
           console.error(error);
         }
-      });
+      }
+    };
+    loadCategories();
   }, []);
 
   useEffect(() => {
