@@ -17,6 +17,7 @@ interface Reel {
 interface ReelGridProps {
   reels: Reel[];
   loading?: boolean;
+  onOpenViewer?: (reel: Reel) => void;
 }
 
 function SkeletonCard() {
@@ -32,7 +33,7 @@ function SkeletonCard() {
   );
 }
 
-export function ReelGrid({ reels, loading }: ReelGridProps) {
+export function ReelGrid({ reels, loading, onOpenViewer }: ReelGridProps) {
   if (loading) {
     return (
       <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
@@ -46,10 +47,10 @@ export function ReelGrid({ reels, loading }: ReelGridProps) {
   if (reels.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center py-24 text-center">
-        <div className="mb-4 text-6xl">🎬</div>
-        <h3 className="text-xl font-semibold">No reels found</h3>
-        <p className="mt-2 text-muted-foreground text-sm">
-          Try a different search or category filter.
+        <div className="mb-4 text-6xl">Catalog</div>
+        <h3 className="text-xl font-semibold">No items found</h3>
+        <p className="mt-2 text-sm text-muted-foreground">
+          Try a different search, category, or letter filter.
         </p>
       </div>
     );
@@ -63,7 +64,7 @@ export function ReelGrid({ reels, loading }: ReelGridProps) {
           className="animate-fade-in-up"
           style={{ animationDelay: `${i * 40}ms` }}
         >
-          <ReelCard reel={reel} />
+          <ReelCard reel={reel} onOpenViewer={onOpenViewer} />
         </div>
       ))}
     </div>
