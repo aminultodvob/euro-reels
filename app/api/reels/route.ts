@@ -1,6 +1,8 @@
 import { Prisma } from "@prisma/client";
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
+
+export const dynamic = "force-dynamic";
 import { reelSchema } from "@/lib/validations";
 import { generateEmbedUrl } from "@/lib/utils";
 import { getServerSession } from "next-auth";
