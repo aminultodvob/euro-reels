@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import { signIn } from "next-auth/react";
-import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -14,7 +13,6 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Play, Loader2, AlertCircle } from "lucide-react";
 
 export default function AdminLoginPage() {
-  const router = useRouter();
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
@@ -31,16 +29,16 @@ export default function AdminLoginPage() {
     const result = await signIn("credentials", {
       email: data.email,
       password: data.password,
+      callbackUrl: "/admin/dashboard",
       redirect: false,
     });
 
     setLoading(false);
 
-    if (result?.error) {
+    if (result?.error || !result?.ok) {
       setError("Invalid email or password");
     } else {
-      router.push("/admin/dashboard");
-      router.refresh();
+      window.location.assign(result.url || "/admin/dashboard");
     }
   };
 

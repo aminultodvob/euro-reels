@@ -27,6 +27,16 @@ export function AdminSidebar() {
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
 
+  const handleSignOut = async () => {
+    setOpen(false);
+    const result = await signOut({
+      callbackUrl: "/admin/login",
+      redirect: false,
+    });
+
+    window.location.assign(result.url || "/admin/login");
+  };
+
   const NavContent = () => (
     <div className="flex h-full flex-col">
       <div className="flex items-center gap-3 border-b border-border/60 p-6">
@@ -69,7 +79,7 @@ export function AdminSidebar() {
           variant="ghost"
           size="sm"
           className="w-full justify-start text-muted-foreground hover:text-destructive"
-          onClick={() => signOut({ callbackUrl: "/admin/login" })}
+          onClick={handleSignOut}
         >
           <LogOut className="mr-2 h-4 w-4" />
           Sign Out
