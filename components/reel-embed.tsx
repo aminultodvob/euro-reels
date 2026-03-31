@@ -13,9 +13,12 @@ interface Reel {
 }
 
 function withAutoplay(url: string, autoplay?: boolean): string {
-  if (!autoplay) return url;
-  const separator = url.includes("?") ? "&" : "?";
-  return `${url}${separator}autoplay=1`;
+  const next = new URL(url);
+  if (autoplay) {
+    next.searchParams.set("autoplay", "1");
+    next.searchParams.set("mute", "0");
+  }
+  return next.toString();
 }
 
 export function ReelEmbed({ reel, autoplay = false }: { reel: Reel; autoplay?: boolean }) {

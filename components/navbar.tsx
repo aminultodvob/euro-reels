@@ -2,7 +2,8 @@
 
 import Link from "next/link";
 import { useState } from "react";
-import { Play, Moon, Sun, Menu, X } from "lucide-react";
+import { useSession } from "next-auth/react";
+import { Play, Moon, Sun, Menu, X, LayoutDashboard, LogIn } from "lucide-react";
 import { useTheme } from "@/components/theme-provider";
 import { Button } from "@/components/ui/button";
 import { SearchBar } from "@/components/search-bar";
@@ -14,6 +15,7 @@ interface NavbarProps {
 export function Navbar({ onSearch }: NavbarProps) {
   const { theme, setTheme } = useTheme();
   const [menuOpen, setMenuOpen] = useState(false);
+  const { data: session } = useSession();
 
   const toggleTheme = () => {
     if (theme === "dark") setTheme("light");
@@ -40,6 +42,28 @@ export function Navbar({ onSearch }: NavbarProps) {
 
         {/* Right controls */}
         <div className="flex items-center gap-2">
+          {session ? (
+            <Link href="/admin/dashboard">
+              <Button variant="ghost" size="sm" className="hidden sm:flex items-center gap-2">
+                <LayoutDashboard className="h-4 w-4" />
+                <span>Dashboard</span>
+              </Button>
+              <Button variant="ghost" size="icon" className="sm:hidden" aria-label="Dashboard">
+                <LayoutDashboard className="h-4 w-4" />
+              </Button>
+            </Link>
+          ) : (
+            <Link href="/admin/login">
+              <Button variant="ghost" size="sm" className="hidden sm:flex items-center gap-2">
+                <LogIn className="h-4 w-4" />
+                <span>Login</span>
+              </Button>
+              <Button variant="ghost" size="icon" className="sm:hidden" aria-label="Login">
+                <LogIn className="h-4 w-4" />
+              </Button>
+            </Link>
+          )}
+
           <Button
             id="theme-toggle"
             variant="ghost"
