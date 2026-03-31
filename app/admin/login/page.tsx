@@ -20,7 +20,13 @@ export default function AdminLoginPage() {
     register,
     handleSubmit,
     formState: { errors },
-  } = useForm<LoginInput>({ resolver: zodResolver(loginSchema) });
+  } = useForm<LoginInput>({
+    resolver: zodResolver(loginSchema),
+    defaultValues: {
+      email: "admin@euro.com",
+      password: "admin1234",
+    },
+  });
 
   const onSubmit = async (data: LoginInput) => {
     setLoading(true);
@@ -110,13 +116,11 @@ export default function AdminLoginPage() {
               </Button>
             </form>
 
-            {process.env.NODE_ENV !== "production" && (
-              <div className="mt-4 rounded-lg border bg-muted/40 px-3 py-3 text-sm">
-                <p className="font-medium">Local admin credentials</p>
-                <p className="mt-1 text-muted-foreground">Email: admin@euro-reel.com</p>
-                <p className="text-muted-foreground">Password: admin123456</p>
-              </div>
-            )}
+            <div className="mt-4 rounded-lg border bg-muted/40 px-3 py-3 text-sm">
+              <p className="font-medium">Admin credentials</p>
+              <p className="mt-1 text-muted-foreground">Email: admin@euro.com</p>
+              <p className="text-muted-foreground">Password: admin1234</p>
+            </div>
           </CardContent>
           <div className="flex flex-col border-t px-6 py-4">
             <p className="text-center text-sm text-muted-foreground">
