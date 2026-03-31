@@ -115,21 +115,16 @@
   box-shadow: 0 20px 40px -12px rgba(0, 0, 0, 0.25);
 }
 
-/* Facebook iframe wrapper */
-.fb-iframe-wrapper {
-  position: relative;
-  width: 100%;
-  padding-top: 56.25%; /* 16:9 */
-  background: #000;
-  border-radius: 0.5rem;
-  overflow: hidden;
-}
-
-.fb-iframe-wrapper iframe {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  border: none;
+/* Utilities */
+@layer utilities {
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  .pb-safe {
+    padding-bottom: env(safe-area-inset-bottom);
+  }
 }

@@ -2,7 +2,6 @@
 
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
-import { Label } from "@/components/ui/label";
 
 interface CategoryFilterProps {
   categories: string[];
@@ -13,33 +12,33 @@ interface CategoryFilterProps {
 export function CategoryFilter({ categories, active, onChange }: CategoryFilterProps) {
   return (
     <div className="rounded-2xl border bg-card/80 p-4 shadow-sm backdrop-blur">
-      <div className="mb-3 flex items-center justify-between gap-3">
-        <div>
-          <p className="text-sm font-semibold">Browse By Category</p>
-          <p className="text-xs text-muted-foreground">
-            Jump straight into the content type you want.
-          </p>
+      <div className="mb-3">
+        <p className="text-sm font-semibold">Browse By Category</p>
+        <p className="text-xs text-muted-foreground">Jump straight into the content type you want.</p>
+      </div>
+
+      {/* Mobile: horizontal scroll chips */}
+      <div className="md:hidden -mx-1 px-1 overflow-x-auto scrollbar-hide">
+        <div className="flex gap-2 pb-1 w-max">
+          {categories.map((cat) => (
+            <button
+              key={cat}
+              id={`category-mobile-${cat.toLowerCase().replace(/\s+/g, "-")}`}
+              onClick={() => onChange(cat)}
+              className={cn(
+                "shrink-0 rounded-full px-4 py-2 text-xs font-medium border transition-all",
+                active === cat
+                  ? "bg-primary text-primary-foreground border-primary shadow-md shadow-primary/25"
+                  : "bg-background text-muted-foreground border-input hover:border-primary/50 hover:text-foreground"
+              )}
+            >
+              {cat}
+            </button>
+          ))}
         </div>
       </div>
 
-      <div className="md:hidden">
-        <Label htmlFor="category-select" className="mb-2 block text-xs text-muted-foreground">
-          Select category
-        </Label>
-        <select
-          id="category-select"
-          value={active}
-          onChange={(e) => onChange(e.target.value)}
-          className="flex h-11 w-full rounded-xl border border-input bg-background px-3 text-sm shadow-sm outline-none transition-colors focus-visible:ring-2 focus-visible:ring-ring"
-        >
-          {categories.map((cat) => (
-            <option key={cat} value={cat}>
-              {cat}
-            </option>
-          ))}
-        </select>
-      </div>
-
+      {/* Desktop: wrapped pills */}
       <div className="hidden flex-wrap gap-2 md:flex">
         {categories.map((cat) => (
           <Button

@@ -2,11 +2,11 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import Image from "next/image";
-import { ExternalLink, Eye, Play, X } from "lucide-react";
+import { ExternalLink, Eye, Play, X, Share2, Heart } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { ReelEmbed } from "@/components/reel-embed";
-import { formatDate } from "@/lib/utils";
+import { formatDate, cn } from "@/lib/utils";
 
 interface Reel {
   id: string;
@@ -30,11 +30,13 @@ interface ViewerItemProps {
   reel: Reel;
   active: boolean;
   onActive: (id: string) => void;
+  onClose: () => void;
 }
 
-function ViewerItem({ reel, active, onActive }: ViewerItemProps) {
+function ViewerItem({ reel, active, onActive, onClose }: ViewerItemProps) {
   const viewedRef = useRef(false);
   const itemRef = useRef<HTMLDivElement | null>(null);
+  const [liked, setLiked] = useState(false);
 
   useEffect(() => {
     const node = itemRef.current;
@@ -65,71 +67,95 @@ function ViewerItem({ reel, active, onActive }: ViewerItemProps) {
   }, [reel.contentType]);
 
   return (
-    <section ref={itemRef} className="snap-start">
-      <div className="mx-auto flex min-h-screen w-full max-w-7xl flex-col items-center justify-center gap-4 px-4 py-6 lg:flex-row lg:items-center lg:justify-center lg:gap-8">
-        <div className="relative w-full max-w-[390px] overflow-hidden rounded-[2rem] border border-white/10 bg-black shadow-2xl">
-          <div className="relative aspect-[9/16] w-full overflow-hidden">
-            {active ? (
-              <div className="absolute inset-0">
-                <ReelEmbed reel={reel} autoplay />
+    <section ref={itemRef} className="snap-start relative h-screen w-full flex items-center justify-center bg-black">
+      {/* Background Dim */}
+      <div className="absolute inset-0 bg-black/60 z-0 pointer-events-none" />
+
+      {/* Main Container */}
+      <div className="relative z-10 w-full max-w-sm sm:max-w-md h-full sm:h-[90vh] flex flex-col sm:justify-center overflow-hidden">
+        
+        {/* Video Area */}
+        <div className="relative flex-1 bg-black sm:rounded-[2rem] overflow-hidden lg:shadow-2xl">
+          {active ? (
+            <div className="absolute inset-0">
+              <ReelEmbed reel={reel} autoplay />
+            </div>
+          ) : reel.thumbnail ? (
+            <div className="absolute inset-x-0 inset-y-0">
+              <Image
+                src={reel.thumbnail}
+                alt={reel.title}
+                fill
+                className="object-cover opacity-80"
+              />
+              <div className="absolute inset-0 flex items-center justify-center">
+                <Play className="h-20 w-20 text-white/50" />
               </div>
-            ) : reel.thumbnail ? (
-              <>
-                <Image
-                  src={reel.thumbnail}
-                  alt={reel.title}
-                  fill
-                  className="object-cover opacity-90"
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-black/10 to-transparent" />
-                <div className="absolute inset-0 flex items-center justify-center">
-                  <div className="flex h-16 w-16 items-center justify-center rounded-full bg-white/20 backdrop-blur ring-2 ring-white/30">
-                    <Play className="ml-1 h-7 w-7 fill-white text-white" />
-                  </div>
-                </div>
-              </>
-            ) : (
-              <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-slate-900 via-slate-800 to-slate-950">
-                <div className="flex h-16 w-16 items-center justify-center rounded-full bg-white/20 backdrop-blur ring-2 ring-white/30">
-                  <Play className="ml-1 h-7 w-7 fill-white text-white" />
-                </div>
-              </div>
-            )}
+            </div>
+          ) : (
+             <div className="absolute inset-0 bg-slate-900" />
+          )}
+
+          {/* Top Actions (Mobile only) */}
+          <div className="absolute top-4 left-4 sm:hidden">
+            <Badge className="bg-black/40 backdrop-blur-md border-none text-white px-3 py-1">
+              {reel.category}
+            </Badge>
+          </div>
+          <button 
+            onClick={onClose}
+            className="absolute top-4 right-4 z-50 h-10 w-10 sm:hidden flex items-center justify-center rounded-full bg-black/40 text-white backdrop-blur-md"
+          >
+            <X className="h-6 w-6" />
+          </button>
+
+          {/* Right Side Interactions (Mobile specific style) */}
+          <div className="absolute right-4 bottom-32 sm:bottom-12 z-20 flex flex-col gap-5 items-center">
+             <button onClick={() => setLiked(!liked)} className="flex flex-col items-center gap-1 group">
+               <div className={cn("h-12 w-12 flex items-center justify-center rounded-full bg-black/30 backdrop-blur-md transition-all group-active:scale-90", liked ? "text-red-500 bg-red-500/20" : "text-white")}>
+                 <Heart className={cn("h-7 w-7", liked && "fill-red-500")} />
+               </div>
+               <span className="text-white text-[10px] font-bold text-shadow">Like</span>
+             </button>
+
+             <button onClick={() => {
+                if(navigator.share) navigator.share({title: reel.title, url: reel.url});
+                else { navigator.clipboard.writeText(reel.url); alert("Copied!"); }
+             }} className="flex flex-col items-center gap-1 group">
+               <div className="h-12 w-12 flex items-center justify-center rounded-full bg-black/30 backdrop-blur-md text-white transition-all group-active:scale-90">
+                 <Share2 className="h-7 w-7" />
+               </div>
+               <span className="text-white text-[10px] font-bold text-shadow">Share</span>
+             </button>
+
+             <div className="flex flex-col items-center gap-1">
+               <div className="h-12 w-12 flex items-center justify-center rounded-full bg-black/30 backdrop-blur-md text-white">
+                 <Eye className="h-7 w-7" />
+               </div>
+               <span className="text-white text-[10px] font-bold text-shadow">{reel.viewCount >= 1000 ? `${(reel.viewCount/1000).toFixed(1)}k` : reel.viewCount}</span>
+             </div>
+          </div>
+
+          {/* Bottom Info Overlay (Mobile Style) */}
+          <div className="absolute bottom-0 inset-x-0 p-6 bg-gradient-to-t from-black/90 via-black/40 to-transparent text-white pointer-events-none">
+            <p className="text-xs font-bold uppercase tracking-widest opacity-80 mb-2">{contentLabel}</p>
+            <h2 className="text-xl font-bold leading-tight line-clamp-2 drop-shadow-md">{reel.title}</h2>
+            <div className="mt-3 flex items-center gap-3">
+               <Badge variant="secondary" className="sm:inline-flex hidden bg-white/20 text-white border-transparent backdrop-blur-sm">{reel.category}</Badge>
+               <span className="text-xs opacity-70 font-medium">{formatDate(reel.createdAt)}</span>
+            </div>
+            <div className="mt-4 pointer-events-auto sm:flex hidden">
+               <Button size="sm" className="w-full sm:w-auto rounded-full px-6" asChild>
+                 <a href={reel.url} target="_blank" rel="noopener noreferrer">
+                   <ExternalLink className="mr-2 h-4 w-4" /> Open on Facebook
+                 </a>
+               </Button>
+            </div>
           </div>
         </div>
-
-        <aside className="w-full rounded-3xl border bg-card/90 p-5 shadow-xl backdrop-blur lg:max-w-sm">
-          <div className="mb-4 flex items-start justify-between gap-3">
-            <div>
-              <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground">
-                {contentLabel}
-              </p>
-              <h2 className="mt-2 text-2xl font-semibold leading-tight">{reel.title}</h2>
-            </div>
-            <Badge variant="secondary">{reel.category}</Badge>
-          </div>
-
-          <div className="mb-5 grid grid-cols-2 gap-3 text-sm text-muted-foreground">
-            <div className="rounded-2xl border bg-background/70 p-3">
-              <p className="text-xs uppercase tracking-wide">Views</p>
-              <p className="mt-1 flex items-center gap-1 font-medium text-foreground">
-                <Eye className="h-4 w-4" />
-                {reel.viewCount.toLocaleString()}
-              </p>
-            </div>
-            <div className="rounded-2xl border bg-background/70 p-3">
-              <p className="text-xs uppercase tracking-wide">Published</p>
-              <p className="mt-1 font-medium text-foreground">{formatDate(reel.createdAt)}</p>
-            </div>
-          </div>
-
-          <Button className="w-full" asChild>
-            <a href={reel.url} target="_blank" rel="noopener noreferrer">
-              <ExternalLink className="mr-2 h-4 w-4" /> Open on Facebook
-            </a>
-          </Button>
-        </aside>
       </div>
+
+      {/* Desktop side button for info/actions if needed? No, overlay is cleaner even on desktop for this view */}
     </section>
   );
 }
@@ -155,20 +181,22 @@ export function ReelViewer({ reels, open, onClose }: ReelViewerProps) {
   }
 
   return (
-    <div className="fixed inset-0 z-[100] bg-background/95 backdrop-blur-sm">
-      <div className="absolute right-4 top-4 z-10">
-        <Button variant="secondary" size="icon" onClick={onClose} aria-label="Close viewer">
-          <X className="h-4 w-4" />
+    <div className="fixed inset-0 z-[100] bg-black animate-in fade-in duration-300">
+      {/* Desktop Close Button */}
+      <div className="absolute right-6 top-6 z-[110] hidden sm:block">
+        <Button variant="ghost" size="icon" onClick={onClose} className="h-12 w-12 rounded-full bg-white/10 hover:bg-white/20 text-white backdrop-blur-md">
+          <X className="h-7 w-7" />
         </Button>
       </div>
 
-      <div className="h-screen snap-y snap-mandatory overflow-y-auto overscroll-y-contain">
+      <div className="h-screen snap-y snap-mandatory overflow-y-auto overscroll-y-contain scrollbar-hide">
         {reels.map((reel) => (
           <ViewerItem
             key={reel.id}
             reel={reel}
             active={activeId === reel.id}
             onActive={setActiveId}
+            onClose={onClose}
           />
         ))}
       </div>

@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useState } from "react";
 import { useSession } from "next-auth/react";
-import { Play, Moon, Sun, Menu, X, LayoutDashboard, LogIn } from "lucide-react";
+import { Play, Moon, Sun, Menu, X, LayoutDashboard, LogIn, Search } from "lucide-react";
 import { useTheme } from "@/components/theme-provider";
 import { Button } from "@/components/ui/button";
 import { SearchBar } from "@/components/search-bar";
@@ -15,6 +15,7 @@ interface NavbarProps {
 export function Navbar({ onSearch }: NavbarProps) {
   const { theme, setTheme } = useTheme();
   const [menuOpen, setMenuOpen] = useState(false);
+  const [searchOpen, setSearchOpen] = useState(false);
   const { data: session } = useSession();
 
   const toggleTheme = () => {
@@ -23,12 +24,12 @@ export function Navbar({ onSearch }: NavbarProps) {
   };
 
   return (
-    <header className="sticky top-0 z-50 w-full border-b border-border/40 bg-background/80 backdrop-blur-lg">
-      <div className="container mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6">
+    <header className="sticky top-0 z-50 w-full border-b border-border/40 bg-background/90 backdrop-blur-lg">
+      <div className="container mx-auto flex h-14 max-w-7xl items-center justify-between px-4 sm:px-6">
         {/* Logo */}
-        <Link href="/" className="flex items-center gap-2 font-bold text-xl">
-          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary">
-            <Play className="h-4 w-4 fill-primary-foreground text-primary-foreground" />
+        <Link href="/" className="flex items-center gap-2 font-bold text-lg shrink-0">
+          <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-primary">
+            <Play className="h-3.5 w-3.5 fill-primary-foreground text-primary-foreground" />
           </div>
           <span className="bg-gradient-to-r from-primary to-blue-400 bg-clip-text text-transparent">
             EuroReel
@@ -41,25 +42,32 @@ export function Navbar({ onSearch }: NavbarProps) {
         </div>
 
         {/* Right controls */}
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1">
+          {/* Mobile search toggle */}
+          {onSearch && (
+            <Button
+              variant="ghost"
+              size="icon"
+              className="md:hidden"
+              onClick={() => setSearchOpen(!searchOpen)}
+              aria-label="Search"
+            >
+              {searchOpen ? <X className="h-5 w-5" /> : <Search className="h-5 w-5" />}
+            </Button>
+          )}
+
           {session ? (
-            <Link href="/admin/dashboard">
-              <Button variant="ghost" size="sm" className="hidden sm:flex items-center gap-2">
+            <Link href="/admin/dashboard" className="hidden sm:block">
+              <Button variant="ghost" size="sm" className="flex items-center gap-2">
                 <LayoutDashboard className="h-4 w-4" />
                 <span>Dashboard</span>
               </Button>
-              <Button variant="ghost" size="icon" className="sm:hidden" aria-label="Dashboard">
-                <LayoutDashboard className="h-4 w-4" />
-              </Button>
             </Link>
           ) : (
-            <Link href="/admin/login">
-              <Button variant="ghost" size="sm" className="hidden sm:flex items-center gap-2">
+            <Link href="/admin/login" className="hidden sm:block">
+              <Button variant="ghost" size="sm" className="flex items-center gap-2">
                 <LogIn className="h-4 w-4" />
                 <span>Login</span>
-              </Button>
-              <Button variant="ghost" size="icon" className="sm:hidden" aria-label="Login">
-                <LogIn className="h-4 w-4" />
               </Button>
             </Link>
           )}
@@ -72,30 +80,22 @@ export function Navbar({ onSearch }: NavbarProps) {
             aria-label="Toggle theme"
           >
             {theme === "dark" ? (
-              <Sun className="h-4 w-4" />
+              <Sun className="h-5 w-5" />
             ) : (
-              <Moon className="h-4 w-4" />
+              <Moon className="h-5 w-5" />
             )}
-          </Button>
-
-          <Button
-            variant="ghost"
-            size="icon"
-            className="md:hidden"
-            onClick={() => setMenuOpen(!menuOpen)}
-            aria-label="Toggle menu"
-          >
-            {menuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
           </Button>
         </div>
       </div>
 
-      {/* Mobile search */}
-      {menuOpen && (
-        <div className="md:hidden border-t border-border/40 px-4 py-3">
-          {onSearch && (
-            <SearchBar onSearch={(q) => { onSearch(q); setMenuOpen(false); }} placeholder="Search reels..." />
-          )}
+      {/* Mobile search bar — slides open */}
+      {searchOpen && onSearch && (
+        <div className="md:hidden border-t border-border/40 px-4 py-3 bg-background/95">
+          <SearchBar
+            onSearch={(q) => { onSearch(q); }}
+            placeholder="Search reels..."
+            className="w-full"
+          />
         </div>
       )}
     </header>

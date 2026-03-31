@@ -7,16 +7,20 @@ export default withAuth(
     const isAdminRoute = req.nextUrl.pathname.startsWith("/admin");
     const isLoginPage = req.nextUrl.pathname === "/admin/login";
 
+    if (isAdminRoute && !isLoginPage) {
+      if (!token) {
+        console.log(`[Middleware] No token found for ${req.nextUrl.pathname}`);
+        return NextResponse.redirect(new URL("/admin/login", req.url));
+      }
+      
+      if (token.role !== "ADMIN") {
+        console.log(`[Middleware] Unauthorized role for ${req.nextUrl.pathname}`);
+        return NextResponse.redirect(new URL("/admin/login", req.url));
+      }
+    }
+
     if (isLoginPage && token) {
       return NextResponse.redirect(new URL("/admin/dashboard", req.url));
-    }
-
-    if (isAdminRoute && !isLoginPage && !token) {
-      return NextResponse.redirect(new URL("/admin/login", req.url));
-    }
-
-    if (isAdminRoute && !isLoginPage && token?.role !== "ADMIN") {
-      return NextResponse.redirect(new URL("/admin/login", req.url));
     }
 
     return NextResponse.next();

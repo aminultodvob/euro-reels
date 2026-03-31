@@ -1,11 +1,22 @@
 "use client";
 
+import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { signOut } from "next-auth/react";
-import { LayoutDashboard, Film, LogOut, Play, ChevronRight, Tags } from "lucide-react";
+import {
+  LayoutDashboard,
+  Film,
+  LogOut,
+  Play,
+  ChevronRight,
+  Tags,
+  Menu,
+  X,
+} from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
+import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 
 const navItems = [
   { href: "/admin/dashboard", label: "Dashboard", icon: LayoutDashboard },
@@ -15,16 +26,19 @@ const navItems = [
 
 export function AdminSidebar() {
   const pathname = usePathname();
+  const [open, setOpen] = useState(false);
 
-  return (
-    <aside className="flex h-full w-64 flex-col border-r border-border/60 bg-card">
+  const NavContent = () => (
+    <div className="flex h-full flex-col">
       <div className="flex items-center gap-3 border-b border-border/60 p-6">
         <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary">
           <Play className="h-4 w-4 fill-primary-foreground text-primary-foreground" />
         </div>
         <div>
           <p className="font-bold leading-none">EuroReel</p>
-          <p className="mt-0.5 text-xs leading-none text-muted-foreground">Admin Panel</p>
+          <p className="mt-0.5 text-xs leading-none text-muted-foreground">
+            Admin Panel
+          </p>
         </div>
       </div>
 
@@ -35,7 +49,7 @@ export function AdminSidebar() {
             <Link
               key={href}
               href={href}
-              id={`nav-${label.toLowerCase().replace(/\s+/g, "-")}`}
+              onClick={() => setOpen(false)}
               className={cn(
                 "flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors",
                 active
@@ -57,7 +71,6 @@ export function AdminSidebar() {
           size="sm"
           className="w-full justify-start text-muted-foreground hover:text-destructive"
           onClick={() => signOut({ callbackUrl: "/admin/login" })}
-          id="sidebar-logout"
         >
           <LogOut className="mr-2 h-4 w-4" />
           Sign Out
@@ -69,6 +82,29 @@ export function AdminSidebar() {
           {"<-"} View Public Site
         </Link>
       </div>
-    </aside>
+    </div>
+  );
+
+  return (
+    <>
+      {/* Desktop Sidebar */}
+      <aside className="hidden h-full w-64 flex-col border-r border-border/60 bg-card md:flex">
+        <NavContent />
+      </aside>
+
+      {/* Mobile Sidebar Trigger */}
+      <div className="fixed bottom-20 right-4 z-50 md:hidden">
+        <Sheet open={open} onOpenChange={setOpen}>
+          <SheetTrigger asChild>
+            <Button size="icon" className="h-12 w-12 rounded-full shadow-xl">
+              <Menu className="h-6 w-6" />
+            </Button>
+          </SheetTrigger>
+          <SheetContent side="left" className="p-0 w-72">
+            <NavContent />
+          </SheetContent>
+        </Sheet>
+      </div>
+    </>
   );
 }

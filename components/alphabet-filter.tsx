@@ -1,8 +1,6 @@
 "use client";
 
 import { cn } from "@/lib/utils";
-import { Button } from "@/components/ui/button";
-import { Label } from "@/components/ui/label";
 
 const LETTERS = ["All", ..."ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("")];
 
@@ -19,39 +17,25 @@ export function AlphabetFilter({ active, onChange }: AlphabetFilterProps) {
         <p className="text-xs text-muted-foreground">Filter content by the first letter of the title.</p>
       </div>
 
-      <div className="md:hidden">
-        <Label htmlFor="alphabet-select" className="mb-2 block text-xs text-muted-foreground">
-          Jump to letter
-        </Label>
-        <select
-          id="alphabet-select"
-          value={active}
-          onChange={(e) => onChange(e.target.value)}
-          className="flex h-11 w-full rounded-xl border border-input bg-background px-3 text-sm shadow-sm outline-none transition-colors focus-visible:ring-2 focus-visible:ring-ring"
-        >
+      {/* Mobile & Desktop: horizontal scroll row */}
+      <div className="-mx-1 px-1 overflow-x-auto scrollbar-hide">
+        <div className="flex gap-1.5 pb-1 w-max">
           {LETTERS.map((letter) => (
-            <option key={letter} value={letter}>
+            <button
+              key={letter}
+              onClick={() => onChange(letter)}
+              aria-label={`Filter by ${letter}`}
+              className={cn(
+                "shrink-0 h-9 min-w-[2.25rem] px-2 rounded-xl text-xs font-semibold border transition-all",
+                active === letter
+                  ? "bg-primary text-primary-foreground border-primary shadow-md shadow-primary/25"
+                  : "bg-background text-muted-foreground border-input hover:border-primary/50 hover:text-foreground"
+              )}
+            >
               {letter}
-            </option>
+            </button>
           ))}
-        </select>
-      </div>
-
-      <div className="hidden flex-wrap gap-2 md:flex">
-        {LETTERS.map((letter) => (
-          <Button
-            key={letter}
-            variant={active === letter ? "default" : "outline"}
-            size="sm"
-            onClick={() => onChange(letter)}
-            className={cn(
-              "min-w-9 rounded-full px-3 text-xs font-medium transition-all",
-              active === letter && "shadow-md shadow-primary/25"
-            )}
-          >
-            {letter}
-          </Button>
-        ))}
+        </div>
       </div>
     </div>
   );
