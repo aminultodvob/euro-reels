@@ -6,20 +6,24 @@ const prisma = new PrismaClient();
 async function main() {
   console.log("Seeding database...");
 
-  const adminEmail = "admin@euro-reel.com";
-  const hashedPassword = await bcrypt.hash("admin123456", 12);
+  const admins = [
+    { email: "admin@euro-reel.com", password: "admin123456" },
+    { email: "admin@euro.com", password: "admin1234" },
+  ];
 
-  const admin = await prisma.user.upsert({
-    where: { email: adminEmail },
-    update: { password: hashedPassword, role: "ADMIN" },
-    create: {
-      email: adminEmail,
-      password: hashedPassword,
-      role: "ADMIN",
-    },
-  });
-
-  console.log(`Admin ready: ${admin.email}`);
+  for (const creds of admins) {
+    const hashedPassword = await bcrypt.hash(creds.password, 12);
+    const admin = await prisma.user.upsert({
+      where: { email: creds.email },
+      update: { password: hashedPassword, role: "ADMIN" },
+      create: {
+        email: creds.email,
+        password: hashedPassword,
+        role: "ADMIN",
+      },
+    });
+    console.log(`Admin ready: ${admin.email}`);
+  }
 
   const sampleReels = [
     {
