@@ -1,9 +1,8 @@
 "use client";
 
 import Image from "next/image";
-import { ExternalLink, Play, Eye, FileText, Share2 } from "lucide-react";
+import { Play, Eye, FileText, Share2 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import { formatDate } from "@/lib/utils";
 
 interface Reel {

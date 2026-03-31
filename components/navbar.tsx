@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useState } from "react";
 import { useSession } from "next-auth/react";
-import { Play, Moon, Sun, Menu, X, LayoutDashboard, LogIn, Search } from "lucide-react";
+import { Play, Moon, Sun, X, LayoutDashboard, LogIn, Search } from "lucide-react";
 import { useTheme } from "@/components/theme-provider";
 import { Button } from "@/components/ui/button";
 import { SearchBar } from "@/components/search-bar";
@@ -14,7 +14,6 @@ interface NavbarProps {
 
 export function Navbar({ onSearch }: NavbarProps) {
   const { theme, setTheme } = useTheme();
-  const [menuOpen, setMenuOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
   const { data: session } = useSession();
 
