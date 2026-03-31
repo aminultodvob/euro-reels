@@ -4,6 +4,9 @@ import * as bcrypt from "bcryptjs";
 import { prisma } from "@/lib/prisma";
 import { loginSchema } from "@/lib/validations";
 
+export const authSecret =
+  process.env.NEXTAUTH_SECRET || "fallback-secret-for-build-only";
+
 export const authOptions: AuthOptions = {
   providers: [
     CredentialsProvider({
@@ -54,6 +57,22 @@ export const authOptions: AuthOptions = {
       }
       return session;
     },
+    async redirect({ url, baseUrl }) {
+      if (url.startsWith("/")) {
+        return `${baseUrl}${url}`;
+      }
+
+      try {
+        const nextUrl = new URL(url);
+        if (nextUrl.origin === baseUrl) {
+          return url;
+        }
+      } catch {
+        return `${baseUrl}/admin/dashboard`;
+      }
+
+      return `${baseUrl}/admin/dashboard`;
+    },
   },
   pages: {
     signIn: "/admin/login",
@@ -66,5 +85,5 @@ export const authOptions: AuthOptions = {
   jwt: {
     maxAge: 30 * 24 * 60 * 60,
   },
-  secret: process.env.NEXTAUTH_SECRET || "fallback-secret-for-build-only",
+  secret: authSecret,
 };

@@ -1,5 +1,6 @@
 import { withAuth } from "next-auth/middleware";
 import { NextResponse } from "next/server";
+import { authSecret } from "@/lib/auth";
 
 export default withAuth(
   function middleware(req) {
@@ -27,6 +28,7 @@ export default withAuth(
     return NextResponse.next();
   },
   {
+    secret: authSecret,
     callbacks: {
       authorized: ({ token, req }) => {
         const isLoginPage = req.nextUrl.pathname === "/admin/login";
