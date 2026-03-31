@@ -6,8 +6,9 @@ export default withAuth(
     const token = req.nextauth.token;
     const isAdminRoute = req.nextUrl.pathname.startsWith("/admin");
     const isLoginPage = req.nextUrl.pathname === "/admin/login";
+    const isSignupPage = req.nextUrl.pathname === "/admin/signup";
 
-    if (isAdminRoute && !isLoginPage) {
+    if (isAdminRoute && !isLoginPage && !isSignupPage) {
       if (!token) {
         console.log(`[Middleware] No token found for ${req.nextUrl.pathname}`);
         return NextResponse.redirect(new URL("/admin/login", req.url));
@@ -19,7 +20,7 @@ export default withAuth(
       }
     }
 
-    if (isLoginPage && token) {
+    if ((isLoginPage || isSignupPage) && token) {
       return NextResponse.redirect(new URL("/admin/dashboard", req.url));
     }
 
@@ -29,7 +30,8 @@ export default withAuth(
     callbacks: {
       authorized: ({ token, req }) => {
         const isLoginPage = req.nextUrl.pathname === "/admin/login";
-        if (isLoginPage) return true;
+        const isSignupPage = req.nextUrl.pathname === "/admin/signup";
+        if (isLoginPage || isSignupPage) return true;
         return !!token;
       },
     },

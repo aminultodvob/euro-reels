@@ -2,11 +2,11 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import Image from "next/image";
-import { ExternalLink, Eye, Play, X, Share2, Heart } from "lucide-react";
+import { ExternalLink, Eye, Play, X, Share2 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { ReelEmbed } from "@/components/reel-embed";
-import { formatDate, cn } from "@/lib/utils";
+import { formatDate } from "@/lib/utils";
 
 interface Reel {
   id: string;
@@ -36,7 +36,6 @@ interface ViewerItemProps {
 function ViewerItem({ reel, active, onActive, onClose }: ViewerItemProps) {
   const viewedRef = useRef(false);
   const itemRef = useRef<HTMLDivElement | null>(null);
-  const [liked, setLiked] = useState(false);
 
   useEffect(() => {
     const node = itemRef.current;
@@ -111,13 +110,6 @@ function ViewerItem({ reel, active, onActive, onClose }: ViewerItemProps) {
 
           {/* Right Side Interactions (Mobile specific style) */}
           <div className="absolute right-4 bottom-32 sm:bottom-12 z-20 flex flex-col gap-5 items-center">
-             <button onClick={() => setLiked(!liked)} className="flex flex-col items-center gap-1 group">
-               <div className={cn("h-12 w-12 flex items-center justify-center rounded-full bg-black/30 backdrop-blur-md transition-all group-active:scale-90", liked ? "text-red-500 bg-red-500/20" : "text-white")}>
-                 <Heart className={cn("h-7 w-7", liked && "fill-red-500")} />
-               </div>
-               <span className="text-white text-[10px] font-bold text-shadow">Like</span>
-             </button>
-
              <button onClick={() => {
                 if(navigator.share) navigator.share({title: reel.title, url: reel.url});
                 else { navigator.clipboard.writeText(reel.url); alert("Copied!"); }
